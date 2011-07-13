@@ -1,7 +1,7 @@
 Package: capushe
 Type: Package
 Title: Capushe, data-driven slope estimation and dimension jump
-Version: 0.8
+Version: 1.0
 Date: 2011-07-13
 Author: Vincent Brault, Jean-Patrick Baudry, Cathy Maugis and Bertrand
         Michel
@@ -13,6 +13,6 @@ License: GPL (>= 2.0)
 LazyLoad: yes
 Depends: methods, graphics, MASS
 Collate: prog.R DDSE.R Djump.R capushe.R
-Packaged: 2011-10-06 06:35:31 UTC; brault
+Packaged: 2012-01-25 15:53:16 UTC; brault
 Repository: CRAN
-Date/Publication: 2011-10-06 11:11:09
+Date/Publication: 2012-02-17 17:18:33
