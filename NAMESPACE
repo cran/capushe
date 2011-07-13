@@ -1,0 +1,19 @@
+exportPattern("^[[:alpha:]]+")
+exportMethods(
+    "plot",
+    "print",
+    "show",
+    "summary",
+    "validation" 
+)
+exportClasses(
+    "Capushe",
+     "DDSE",
+     "Djump" 
+)
+export("AICcapushe",
+	"BICcapushe")
+import(graphics)
+importFrom(MASS,rlm)
+importFrom(stats,lm)
+
