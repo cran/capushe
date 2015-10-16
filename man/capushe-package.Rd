@@ -23,12 +23,14 @@ available for each one of these two classes. \code{\link[=DDSE]{DDSE}} and \code
 the \code{\link[=capushe]{capushe}} function which is the main function of the package.
 }
 \author{
-Vincent Brault, Jean-Patrick Baudry, Cathy Maugis and Bertrand Michel.
+Sylvain Arlot, Vincent Brault, Jean-Patrick Baudry, Cathy Maugis and Bertrand Michel.
 
 Maintainer: Vincent Brault <vincent.brault@math.u-psud.fr>
 }
 \references{
 \url{http://www.math.univ-toulouse.fr/~maugis/CAPUSHE.html}
+
+\url{http://www.math.u-psud.fr/~brault/capushe.html}
 
 Article: Baudry, J.-P., Maugis, C. and Michel, B. (2011) Slope heuristics:
 overview and implementation. \var{Statistics and Computing}, to appear. doi: 10.1007/

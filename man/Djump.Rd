@@ -22,7 +22,7 @@ Model selection by dimension jump
 \code{Djump} is a model selection function based on the slope heuristics.
 }
 \usage{
-Djump(data,scoef=2)
+Djump(data,scoef=2,Careajump=0,Ctresh=0)
 }
 \arguments{
 \item{data}{
@@ -36,8 +36,16 @@ Djump(data,scoef=2)
     }
 }
 \item{scoef}{
-  Ratio parameter. Default value is 2.
-  
+  Ratio parameter. Default value is 2.  
+}
+  \item{Careajump}{
+  Constant of jump area. Default value is 0 (no area). In practice,
+it is advisable to take \eqn{Careajump=\sqrt{\frac{log(n)}{n}}} where \eqn{n} is the number of observations.
+}
+  \item{Ctresh}{
+  Maximal treshold for the complexity associated to the penalty coefficient.
+  Default value is 0 (Maximal jump selected as the greatest jump). In practice,
+it is advisable to take \eqn{Ctresh=\frac{n}{log(n)}} where \eqn{n} is the number of observations.
 }
 }
 
@@ -49,9 +57,19 @@ Djump(data,scoef=2)
 
 This gives a decreasing step function \eqn{\kappa \mapsto C_{m(\kappa)}}.}
 \item{Find \eqn{\hat{\kappa}} such that \eqn{C_{m(\hat{\kappa})}} corresponds to the
-greatest jump of complexity.}
+greatest jump of complexity if \eqn{C_{tresh}=0} else \eqn{\hat{\kappa}} such that 
+
+\eqn{\hat{\kappa}=inf\{\kappa>0: C_{m(\kappa)}\leq C_{tresh}\}.}
+
+}
 \item{Select \eqn{\hat{m}=m(scoef\times\hat{\kappa})} (output \code{@model}).}
 }
+Arlot has proposed a jump area containing the maximal jump defined by : 
+
+\eqn{[\kappa(1-Careajump);\kappa(1+Careajump)].}
+
+If \eqn{Careajump>0}, \code{Djump} return the area with the greatest jump. In practice,
+it is advisable to take \eqn{Careajump=\frac{log(n)}{n}} where \eqn{n} is the number of observations.
 }
 
 \value{
@@ -66,6 +84,8 @@ greatest jump of complexity.}
 }
 \references{
 \url{http://www.math.univ-toulouse.fr/~maugis/CAPUSHE.html}
+
+\url{http://www.math.u-psud.fr/~brault/capushe.html}
 
 Article: Baudry, J.-P., Maugis, C. and Michel, B. (2011) Slope heuristics:
 overview and implementation. \var{Statistics and Computing}, to appear. doi: 10.1007/
@@ -85,6 +105,10 @@ algorithm and the \code{Djump} algorithm.
 data(datacapushe)
 Djump(datacapushe)
 plot(Djump(datacapushe))
+Djump(datacapushe,Careajump=sqrt(log(1000)/1000))
+plot(Djump(datacapushe,Careajump=sqrt(log(1000)/1000)))
+Djump(datacapushe,Ctresh=1000/log(1000))
+plot(Djump(datacapushe,Ctresh=1000/log(1000)))
 }
 
 \keyword{models}

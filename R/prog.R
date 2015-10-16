@@ -28,7 +28,7 @@ if (leng==0){
 if ((length(data$pen)!=leng)|(length(data$complexity)!=leng)|(length(data$contrast)!=leng)){
 	stop("The lengths of the columns must be equal")
 	}
-if (!prod(data$complexity>0)){
+if (!prod(data$complexity>=0)){
 	stop("Complexity must be positive")
 	}
 if (!(floor(n)==n)|(n<0)){
@@ -82,7 +82,7 @@ if (leng==0){
 if ((length(data$pen)!=leng)|(length(data$complexity)!=leng)|(length(data$contrast)!=leng)){
 	stop("The lengths of the columns must be equal")
 	}
-if (!prod(data$complexity>0)){
+if (!prod(data$complexity>=0)){
 	stop("Complexity must be positive")
 	}
 if (!(floor(n)==n)|(n<0)){

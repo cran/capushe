@@ -50,7 +50,7 @@ setMethod(
 
 	Model=x@ModelHat$model_hat[x@ModelHat$point_breaking[x@ModelHat$imax]]
 
-	if (newwindow){	x11(width=14)}
+	if (newwindow){	dev.new(width=14)}
 	par(mgp = c(3, 0.5, 0))
 	layout(matrix(c(1,1,1,1,1,1,1,1,2,3,2,3,2,3),ncol=7))
 	Couleur=c(rep("blue",(p-1)),rep("red",(plength-p+2)))
@@ -176,7 +176,7 @@ if ((pct<0)|(pct>1)){
 if (point>mlength){
 	stop("point must be smaller than the number of models")
 	}
-if (!prod(data$complexity>0)){
+if (!prod(data$complexity>=0)){
 	stop("Complexity must be positive")
 	}
 
@@ -323,7 +323,7 @@ setMethod(
 	contrast=c(x@graph$contrast,data2$contrast)
 	model=c(x@graph$model,data2$model)
 
-	if (newwindow){	x11(width=14) }
+	if (newwindow){	dev.new(width=14) }
 	par(mgp = c(3, 0.5, 0))
 	Couleur=c(rep("blue",(p-1)),rep("red",(plength-p+2)))
 	Cof=x@graph$reg$coefficients

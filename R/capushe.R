@@ -39,7 +39,7 @@ setMethod("show","Capushe",
 
 
 
-capushe = function(data,n=0,pct=0.15,point=0,psi.rlm=psi.bisquare,scoef=2){
+capushe = function(data,n=0,pct=0.15,point=0,psi.rlm=psi.bisquare,scoef=2,Careajump=0,Ctresh=0){
 
 if(!(is.numeric(n))){
 	stop("n must be numeric")
@@ -99,7 +99,7 @@ if ((pct<0)|(pct>1)){
 if (point>mlength){
 	stop("point must be smaller than the number of models")
 	}
-if (!prod(data$complexity>0)){
+if (!prod(data$complexity>=0)){
 	stop("Complexity must be positive")
 	}
 if (!(floor(n)==n)|(n<0)){
@@ -114,13 +114,35 @@ if (scoef<1){
 if(scoef==Inf){
 	stop("scoef must be different of Inf")
 	}
+if(!(is.numeric(Careajump))){
+  stop("Caerajump must be numeric")
+  }
+if(Careajump<0){
+  stop("Careajump must be positive")
+}
+if(Careajump>=1){
+  stop("Careajump must be less than one")
+  }
+if(!(is.numeric(Ctresh))){
+  stop("Ctresh must be numeric")
+  }
+if(Ctresh<0){
+ stop("Ctresh must be positive") 
+}
+if(Ctresh>max(data$complexity)){
+  stop("Ctresh must be less than the maximum complexity")
+}
 	
 
 slope=DDSE(data,pct=pct,point=point,psi.rlm=psi.rlm,scoef=scoef)
-jump=Djump(data,scoef=scoef)
+if ((Careajump==0)*(n!=0)){
+  jump=Djump(data,scoef=scoef,Careajump=sqrt(log(n)/n),Ctresh=Ctresh)
+}else{
+  jump=Djump(data,scoef=scoef,Careajump=Careajump,Ctresh=Ctresh)
+}
 
 if (slope@model!=jump@model){
-	warning("The models returned by DDSE and Djump are different")
+	warning("Models selected by DDSE and Djump are different")
 	}
 
 if (n!=0){
@@ -157,7 +179,7 @@ setMethod(
 	
 	Model=x@DDSE@ModelHat$model_hat[x@DDSE@ModelHat$point_breaking[x@DDSE@ModelHat$imax]]
 
-	if (newwindow){	x11(width=14)}
+	if (newwindow){	dev.new(width=14)}
 	for (i in 1:(newwindow+1)){
 		par(ask=ask,mgp = c(3, 0.5, 0))
 		layout(matrix(c(1,1,1,1,1,1,1,1,2,3,2,3,2,3),ncol=7))
@@ -229,14 +251,17 @@ setMethod(
 	mleng=length(x@Djump@ModelHat$model_hat)
 
 
-	if (newwindow){	x11(width=15)}
+	if (newwindow){	dev.new(width=15)}
 	else{layout(c(1))}
 
 	par(oma=c(0,3,0,0),xaxs="i")
 
 	Intervalslope=scoef*x@DDSE@interval$interval
-
-	Absmax=max((scoef+1)/scoef*x@Djump@ModelHat$Kopt,5/4*Intervalslope[2])
+  if (length(x@Djump@Area)==4){
+	  Absmax=max((scoef+1)/scoef*x@Djump@ModelHat$Kopt,5/4*Intervalslope[2],5/4*scoef*x@Djump@Area$kappasup)
+  }else{
+    Absmax=max((scoef+1)/scoef*x@Djump@ModelHat$Kopt,5/4*Intervalslope[2])
+  }
 
 	Ordmin=max(which((x@Djump@ModelHat$kappa<=Absmax)==TRUE))
 	plot(x=x@Djump@ModelHat$Kopt,y=x@Djump@graph$complexity[x@Djump@graph$Modopt],xlim=c(0,Absmax),ylim=c(x@Djump@graph$complexity[x@Djump@ModelHat$model_hat[Ordmin]],x@Djump@graph$complexity[x@Djump@ModelHat$model_hat[1]]),ylab="",xlab=expression(paste("Values of the penalty constant ",kappa)),yaxt="n",pch=4,col="blue",main="Dimension Jump",lwd=3,xaxt="n")
@@ -258,13 +283,22 @@ setMethod(
 	i=leng2
 	j=leng2-1
 	while (j>0){
-		while ((j>0)*((complex2[j]-complex2[i])<pas)){
+		while ((j>1)*((complex2[j]-complex2[i])<pas)){
 			Coord=c(Coord,-j)
+			j=j-1		
+			}
+    if ((j==1)*((complex2[j]-complex2[i])<pas)){
+  		Coord=c(Coord,-j)
 			j=j-1		
 			}
 		i=j
 		j=j-1
 		}
+  if (x@Djump@graph$Ctresh>0){
+    Coord=c(Coord,-which(abs(complex-x@Djump@graph$Ctresh)<pas))
+    lines(c(par("usr")[1],par("usr")[2]),c(x@Djump@graph$Ctresh,x@Djump@graph$Ctresh),lty=4,col="chocolate1")
+    axis(2,x@Djump@graph$Ctresh,expression(C[tresh]),las=2)
+  }
 	if (length(Coord)>0){
 		complex2=complex2[Coord]
 		ordon=ordon[Coord]
@@ -305,19 +339,44 @@ setMethod(
 
 	if (redmin==(redmax-1)){
 		lines(x=c(Intervalslope[1],Intervalslope[2]),y=c(complex[redmin],complex[redmin]),col="red",lwd=2)
-		}
-	else{
+		}else{
 		lines(x=c(Intervalslope[1],x@Djump@ModelHat$kappa[redmin+1]),y=c(complex[redmin],complex[redmin]),col="red",lwd=2)
-		if ((redmin+1)<(redmax-2)){
+		if ((redmin+1)<(redmax-1)){
 			for (i in (redmin+1):(redmax-2)){
 				lines(x=c(x@Djump@ModelHat$kappa[i],x@Djump@ModelHat$kappa[i+1]),y=c(complex[i],complex[i]),col="red",lwd=2)
 				}
 			}
 		lines(x=c(x@Djump@ModelHat$kappa[redmax-1],Intervalslope[2]),y=c(complex[redmax-1],complex[redmax-1]),col="red",lwd=2)
 		}
+  
+  if (length(x@Djump@Area)==4){
+    lines(c(x@Djump@Area$kappainf,x@Djump@Area$kappasup),c(par("usr")[3],par("usr")[3]),col="green4",lwd=2)
+    yarea=(x@Djump@graph$complexity[x@Djump@ModelHat$model_hat[Ordmin]]+par("usr")[3])/2
+    lines(c(x@Djump@Area$kappainf,x@Djump@Area$kappainf),c(par("usr")[3],yarea),col="green4",lwd=2)
+    lines(c(x@Djump@Area$kappasup,x@Djump@Area$kappasup),c(par("usr")[3],yarea),col="green4",lwd=2)
+    
+    greenmin=max(which(x@Djump@ModelHat$kappa<scoef*x@Djump@Area$kappainf))
+    greenmax=min(c(which(x@Djump@ModelHat$kappa>scoef*x@Djump@Area$kappasup),mleng))
 
-	legend("topright",legend=c("Maximal Jump",paste(as.character(scoef), "x Slope estimation interval")),lty=c(2,1),col=c("blue","red"),lwd=c(1,2))
+	  if (greenmin==(greenmax-1)){
+		lines(x=scoef*c(x@Djump@Area$kappainf,x@Djump@Area$kappasup),y=c(complex[greenmin],complex[greenmin]),col="green4",lwd=4,lty=3)
+		}
+	else{
+		lines(x=c(scoef*x@Djump@Area$kappainf,x@Djump@ModelHat$kappa[greenmin+1]),y=c(complex[greenmin],complex[greenmin]),col="green4",lwd=4,lty=3)
+		if ((greenmin+1)<(greenmax-1)){
+			for (i in (greenmin+1):(greenmax-2)){
+				lines(x=c(x@Djump@ModelHat$kappa[i],x@Djump@ModelHat$kappa[i+1]),y=c(complex[i],complex[i]),col="green4",lwd=4,lty=3)
+				}
+			}
+		lines(x=c(x@Djump@ModelHat$kappa[greenmax-1],scoef*x@Djump@Area$kappasup),y=c(complex[greenmax-1],complex[greenmax-1]),col="green4",lwd=4,lty=3)
+		}
+    
+    legend("topright",legend=c("Maximal Jump",paste(as.character(scoef), "x Slope estimation interval"),"Jump area",paste(as.character(scoef), "x Jump area")),lty=c(2,1,1,3),col=c("blue","red","green4","green4"),lwd=c(1,2,2,4),bg = "white")
+  }else{
+    legend("topright",legend=c("Maximal Jump",paste(as.character(scoef), "x Slope estimation interval")),lty=c(2,1),col=c("blue","red"),lwd=c(1,2),bg = "white")
+  }
 
+	
 	}
 )
 
@@ -335,11 +394,19 @@ setMethod("summary","Capushe",
 
 	cat("\nEstimated penalty constant: ",as.character(signif(object@Djump@ModelHat$kappa[object@Djump@ModelHat$JumpMax+1],3)),"\n",sep="")
 	cat("Selected model complexity: ",as.character(object@Djump@graph$complexity[object@Djump@graph$Modopt]),"\n\n",sep="")
-
+  if (length(object@Djump@Area)==4){
+    cat("Jump area: [",as.character(signif(object@Djump@Area$kappainf,3)),";",as.character(signif(object@Djump@Area$kappasup,3)),"]\n",sep="")
+    if (length(object@Djump@Area$Modeloptarea)>1){
+      cat("Models selected by jump area: ",sep="")
+      cat(cat(as.character(object@Djump@graph$model[sort(object@Djump@Area$Modeloptarea)]),sep=", "),"\n\n",sep="")
+    }else{
+      cat("Model selected by jump area: ",as.character(object@Djump@graph$model[object@Djump@Area$Modeloptarea]),"\n\n",sep="")
+    }
+  }
 
 	if (object@n!=0){
-		cat("\nSelected model by AIC: ",as.character(object@AIC_capushe$model),"\n",sep="")
-		cat("\nSelected model by BIC: ",as.character(object@BIC_capushe$model),"\n",sep="")
+		cat("\nModel selected by AIC: ",as.character(object@AIC_capushe$model),"\n",sep="")
+		cat("\nModel selected by BIC: ",as.character(object@BIC_capushe$model),"\n",sep="")
 		}
 	}
 )

@@ -1,19 +1,24 @@
 exportPattern("^[[:alpha:]]+")
+export(validation)
+import("graphics")
+import("methods")
+importFrom("MASS",rlm)
+importFrom("MASS",psi.bisquare)
+importFrom("stats",lm)
+importFrom("methods",show)
+importFrom("utils",read.table)
+importFrom("grDevices",dev.new)
 exportMethods(
-    "plot",
-    "print",
-    "show",
-    "summary",
-    "validation" 
+    plot,
+    print,
+    show,
+    summary,
+    validation 
 )
 exportClasses(
-    "Capushe",
-     "DDSE",
-     "Djump" 
+    Capushe,
+    DDSE,
+    Djump 
 )
-export("AICcapushe",
-	"BICcapushe")
-import(graphics)
-importFrom(MASS,rlm)
-importFrom(stats,lm)
-
+export(AICcapushe,
+	BICcapushe)

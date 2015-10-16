@@ -22,7 +22,8 @@ The \code{capushe} function proposes two algorithms based on the slope heuristic
 to calibrate penalties in the context of model selection via penalization.
 }
 \usage{
-capushe(data, n = 0, pct = 0.15, point = 0, psi.rlm = psi.bisquare, scoef = 2)
+capushe(data,n=0,pct=0.15,point=0,psi.rlm=psi.bisquare,scoef=2,
+			Careajump=0,Ctresh=0)
 }
 
 \arguments{
@@ -53,8 +54,14 @@ capushe(data, n = 0, pct = 0.15, point = 0, psi.rlm = psi.bisquare, scoef = 2)
   linear regression.
 }
   \item{scoef}{
-  Ratio parameter. Default value is 2. 
-  
+  Ratio parameter. Default value is 2.   
+}
+  \item{Careajump}{
+  Constant of jump area (See \code{\link[=Djump]{Djump}} for more details). Default value is 0 (no area).
+}
+  \item{Ctresh}{
+  Maximal treshold for the complexity associated to the penalty coefficient (See \code{\link[=Djump]{Djump}} for more details).
+  Default value is 0 (Maximal jump selected as the greater jump).
 }
 }
 \details{
@@ -95,6 +102,8 @@ plateau selected in \code{DDSE}. See \code{\link[=DDSE]{DDSE}} for more details.
 }
 \references{
 \url{http://www.math.univ-toulouse.fr/~maugis/CAPUSHE.html}
+
+\url{http://www.math.u-psud.fr/~brault/capushe.html}
 
 Article: Baudry, J.-P., Maugis, C. and Michel, B. (2011) Slope heuristics:
 overview and implementation. \var{Statistics and Computing}, to appear. doi: 10.1007/

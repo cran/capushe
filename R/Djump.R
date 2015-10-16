@@ -3,7 +3,8 @@ setClass(
         representation=representation(
 	model="character",
 	ModelHat="list",
-	graph="list")
+	graph="list",
+  Area="list")
 )
 
 setMethod("print","Djump",
@@ -22,9 +23,18 @@ setMethod("summary","Djump",
 function(object,checking=FALSE,checkgraph=FALSE){
 	cat("\nSelected model: ",as.character(object@model),"\n",sep="")
 
-	cat("\nEstimated penalty constant: ",as.character(signif(object@ModelHat$kappa[object@ModelHat$JumpMax],3)),"\n",sep="")
+	cat("\nEstimated penalty constant: ",as.character(signif(object@ModelHat$kappa[object@ModelHat$JumpMax+1],3)),"\n",sep="")
 	cat("Selected model complexity: ",as.character(object@graph$complexity[object@graph$Modopt]),"\n\n",sep="")
 
+  if (length(object@Area)==4){
+    cat("Jump area: [",as.character(signif(object@Area$kappainf,3)),";",as.character(signif(object@Area$kappasup,3)),"]\n",sep="")
+    if (length(object@Area$Modeloptarea)>1){
+      cat("Models selected by jump area: ",sep="")
+      cat(cat(as.character(object@graph$model[sort(object@Area$Modeloptarea)]),sep=", "),"\n\n",sep="")
+    }else{
+      cat("Model selected by jump area: ",as.character(object@graph$model[object@Area$Modeloptarea]),"\n\n",sep="")
+    }
+  }
 	if (checking){
 		result=list(object@model,object@ModelHat)
 		names(result)=c("model","ModelHat")
@@ -38,7 +48,7 @@ function(object,checking=FALSE,checkgraph=FALSE){
 	}
 )
 
-Djump = function(data,scoef=2){
+Djump = function(data,scoef=2,Careajump=0,Ctresh=0){
 
 if (is.character(data)){data=read.table(data)}
 
@@ -76,7 +86,7 @@ if (!is.numeric(data[,4])){
 if ((length(data$pen)!=leng)|(length(data$complexity)!=leng)|(length(data$contrast)!=leng)){
 	stop("The lengths of the columns are not equal")
 	}
-if (!prod(data$complexity>0)){
+if (!prod(data$complexity>=0)){
 	stop("Complexity must be positive")
 	}
 data=data[order(data$pen,data$contrast),]
@@ -93,6 +103,24 @@ if (scoef<1){
 if(scoef==Inf){
 	stop("scoef must be different of Inf")
 	}
+if(!(is.numeric(Careajump))){
+  stop("Caerajump must be numeric")
+	}
+if(Careajump<0){
+  stop("Careajump must be positive")
+}
+if(Careajump>=1){
+  stop("Careajump must be less than one")
+	}
+if(!(is.numeric(Ctresh))){
+  stop("Ctresh must be numeric")
+  }
+if(Ctresh<0){
+ stop("Ctresh must be positive") 
+}
+if(Ctresh>max(data$complexity)){
+  stop("Ctresh must be less than the maximum complexity")
+}
 
 kappa=c(0)
 m=which.min(data$contrast)
@@ -111,11 +139,41 @@ while (length(G)>0){
 
 mleng=length(mhat)
 jump=data$complexity[mhat[1:(mleng-1)]]-data$complexity[mhat[2:mleng]]
-maxjump=which(jump==max(jump))
-if (length(maxjump)>1){
-	warning("There are several maximum jump")
+
+if(Ctresh==0){
+  maxjump=which(jump==max(jump))
+  if (length(maxjump)>1){
+	  warning("There are several maximum jump")
 	}
-JumpMax=max(maxjump)
+  JumpMax=max(maxjump)
+}else{
+  if(length(which((data$complexity[mhat]<=Ctresh)==TRUE))){
+    JumpMax=which.max(data$complexity[mhat]<Ctresh)-1
+  }else{
+    stop("Ctresh is too small")
+  }
+}
+
+if (Careajump>0){
+  Const=(1-Careajump)/(1+Careajump)
+  kappajump=kappa*Const
+  Jumpareasup=numeric(mleng-1)
+  for (i in 2:mleng){
+    Jumpareasup[i-1]=data$complexity[mhat[which(((kappa[2:mleng]>kappajump[i])*(kappa[1:(mleng-1)]<=kappajump[i]))==TRUE)]]
+  }
+  Jumparea=Jumpareasup-data$complexity[mhat[1:(mleng-1)]]
+  Jumpareamax=max(which(Jumparea==max(Jumparea)))
+  kappareainf=scoef*kappajump[Jumpareamax+1]
+  kappareasup=scoef*kappa[Jumpareamax+1]
+  area=which(((kappa[2:mleng]>kappareainf)*(kappa[1:(mleng-1)]<=kappareasup))==TRUE)
+  if (kappareasup>kappa[mleng]){
+    area=c(area,mleng)
+  }
+  Modeloptarea=mhat[area]
+  Area=list(Modeloptarea=Modeloptarea,area=area,kappainf=kappajump[Jumpareamax+1],kappasup=kappa[Jumpareamax+1])
+}else{
+  Area=list()
+}
 
 
 
@@ -132,10 +190,10 @@ if (length(test)==0){
 
 check=list(jump,kappa,mhat,JumpMax,Kopt)
 names(check)=c("jump","kappa","model_hat","JumpMax","Kopt")
-graph=list(data$pen,data$complexity,data$model,Modelopt)
-names(graph)=c("pen","complexity","model","Modopt")
+graph=list(data$pen,data$complexity,data$model,Modelopt,Ctresh)
+names(graph)=c("pen","complexity","model","Modopt","Ctresh")
 
-new(Class="Djump",model=as.character(data$model[Modelopt]),ModelHat=check,graph=graph)
+new(Class="Djump",model=as.character(data$model[Modelopt]),ModelHat=check,graph=graph,Area=Area)
 
 }
 
@@ -150,10 +208,10 @@ setMethod(
 	mleng=length(x@ModelHat$model_hat)
 	scoef=x@ModelHat$Kopt/x@ModelHat$kappa[x@ModelHat$JumpMax+1]
 
-	if (newwindow){	x11(width=15)}
+	if (newwindow){	dev.new(width=15)}
 
 	par(oma=c(0,3,0,0),xaxs="i")
-	Absmax=(scoef+1)/scoef*x@ModelHat$Kopt
+	Absmax=max((scoef+1)/scoef*x@ModelHat$Kopt,5/4*x@Area$kappasup)
 	Ordmin=max(which((x@ModelHat$kappa<=Absmax)==TRUE))
 	plot(x=x@ModelHat$Kopt,y=x@graph$complexity[x@graph$Modopt],xlim=c(0,Absmax),ylim=c(x@graph$complexity[x@ModelHat$model_hat[Ordmin]],x@graph$complexity[x@ModelHat$model_hat[1]]),ylab="",xlab=expression(paste("Values of the penalty constant ",kappa)),yaxt="n",pch=4,col="blue",main="Dimension Jump",lwd=3,xaxt = "n")
 	complex=x@graph$complexity[x@ModelHat$model_hat[1:Ordmin]]
@@ -174,13 +232,22 @@ setMethod(
 	i=leng2
 	j=leng2-1
 	while (j>0){
-		while ((j>0)*((complex[j]-complex[i])<pas)){
+		while ((j>1)*((complex[j]-complex[i])<pas)){
 			Coord=c(Coord,-j)
+			j=j-1		
+			}
+    while ((j==1)*((complex[j]-complex[i])<pas)){
+  		Coord=c(Coord,-j)
 			j=j-1		
 			}
 		i=j
 		j=j-1
 		}
+  if (x@graph$Ctresh>0){
+    Coord=c(Coord,-which(abs(complex-x@graph$Ctresh)<pas))
+    lines(c(par("usr")[1],par("usr")[2]),c(x@graph$Ctresh,x@graph$Ctresh),lty=4,col="chocolate1")
+    axis(2,x@graph$Ctresh,expression(C[tresh]),las=2)
+  }
 	if (length(Coord)>0){
 		complex=complex[Coord]
 		ordon=ordon[Coord]
@@ -219,8 +286,18 @@ setMethod(
     absci=absci[-Empty]
     }       
 	axis(1,absci,signif(absci,2))
+  
+  if (length(x@Area)==4){
+    lines(c(x@Area$kappainf,x@Area$kappasup),c(par("usr")[3],par("usr")[3]),col="green4",lwd=2)
+    yarea=(x@graph$complexity[x@ModelHat$model_hat[Ordmin]]+par("usr")[3])/2
+    lines(c(x@Area$kappainf,x@Area$kappainf),c(par("usr")[3],yarea),col="green4",lwd=2)
+    lines(c(x@Area$kappasup,x@Area$kappasup),c(par("usr")[3],yarea),col="green4",lwd=2)
+    legend("topright",legend=c("Maximal Jump","Jump area"),lty=c(2,1),col=c("blue","green4"),lwd=c(1,2),bg = "white")
+  }else{
+    legend("topright",legend="Maximal Jump",lty=2,col="blue",bg = "white")
+  }
 
-	legend("topright",legend="Maximal Jump",lty=2,col="blue")
+	
 	}
 )
 
