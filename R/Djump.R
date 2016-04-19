@@ -203,6 +203,17 @@ setMethod(
 	f="plot",
 	signature="Djump",
 	definition=function(x,y,newwindow=TRUE,...){
+	  
+	  
+	  if(!is.logical(newwindow)){
+	    stop("newwindow must be logical")
+	  }
+	  refgraph=list(ask=par()$ask,
+	                mgp=par()$mgp,
+	                oma=par()$oma,
+	                xaxs=par()$xaxs,
+	                mfrow=par()$mfrow,
+	                cex.axis=par()$cex.axis)
 
 	leng=length(x@graph$model)
 	mleng=length(x@ModelHat$model_hat)
@@ -210,11 +221,12 @@ setMethod(
 
 	if (newwindow){	dev.new(width=15)}
 
-	par(oma=c(0,3,0,0),xaxs="i")
+	par(oma=c(0,3,0,0),xaxs="i",mfrow=c(1,1))
 	Absmax=max((scoef+1)/scoef*x@ModelHat$Kopt,5/4*x@Area$kappasup)
 	Ordmin=max(which((x@ModelHat$kappa<=Absmax)==TRUE))
 	plot(x=x@ModelHat$Kopt,y=x@graph$complexity[x@graph$Modopt],xlim=c(0,Absmax),ylim=c(x@graph$complexity[x@ModelHat$model_hat[Ordmin]],x@graph$complexity[x@ModelHat$model_hat[1]]),ylab="",xlab=expression(paste("Values of the penalty constant ",kappa)),yaxt="n",pch=4,col="blue",main="Dimension Jump",lwd=3,xaxt = "n")
 	complex=x@graph$complexity[x@ModelHat$model_hat[1:Ordmin]]
+	complexgreen=complex
 	for (i in 1:(mleng-1)){
 		lines(x=c(x@ModelHat$kappa[i],x@ModelHat$kappa[i+1]),y=c(complex[i],complex[i]))
 		}
@@ -236,7 +248,7 @@ setMethod(
 			Coord=c(Coord,-j)
 			j=j-1		
 			}
-    while ((j==1)*((complex[j]-complex[i])<pas)){
+    while ((j==1)&&((complex[j]-complex[i])<pas)){
   		Coord=c(Coord,-j)
 			j=j-1		
 			}
@@ -292,10 +304,24 @@ setMethod(
     yarea=(x@graph$complexity[x@ModelHat$model_hat[Ordmin]]+par("usr")[3])/2
     lines(c(x@Area$kappainf,x@Area$kappainf),c(par("usr")[3],yarea),col="green4",lwd=2)
     lines(c(x@Area$kappasup,x@Area$kappasup),c(par("usr")[3],yarea),col="green4",lwd=2)
-    legend("topright",legend=c("Maximal Jump","Jump area"),lty=c(2,1),col=c("blue","green4"),lwd=c(1,2),bg = "white")
+    
+    greenmin=max(which(x@ModelHat$kappa<scoef*x@Area$kappainf))
+    greenmax=max(which(x@ModelHat$kappa<scoef*x@Area$kappasup))
+    
+    if (greenmin==greenmax){
+      lines(x=scoef*c(x@Area$kappainf,x@Area$kappasup),y=c(complexgreen[greenmin],complexgreen[greenmin]),col="green4",lwd=4,lty=3)
+    }else{
+      G=greenmin:greenmax
+      Kap=c(scoef*x@Area$kappainf,x@ModelHat$kappa[G[-1]],scoef*x@Area$kappasup)
+      for (g in 1:length(G)){
+        lines(x=Kap[c(g,g+1)],y=rep(complexgreen[G[g]],2),col="green4",lwd=4,lty=3)
+      }
+    }
+    legend("topright",legend=c("Maximal Jump","Jump area",paste(as.character(scoef), "x Jump area")),lty=c(2,1,3),col=c("blue","green4","green4"),lwd=c(1,2,4),bg = "white")
   }else{
     legend("topright",legend="Maximal Jump",lty=2,col="blue",bg = "white")
   }
+	par(refgraph)
 
 	
 	}

@@ -1,7 +1,0 @@
-load("./data/datacapushe.rda")
-load("./data/datapartialcapushe.rda")
-load("./data/datavalidcapushe.rda")
-source("./testsDev/testsprog.R")
-source("./testsDev/testsDDSE")
-source("./testsDev/testsDjump")
-source("./testsDev/testscapushe")

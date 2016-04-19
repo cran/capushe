@@ -43,6 +43,16 @@ setMethod(
 	f="plot",
 	signature="DDSE",
 	definition=function(x,y,newwindow=TRUE,...){
+	  
+	  if(!is.logical(newwindow)){
+	    stop("newwindow must be logical")
+	  }
+	  refgraph=list(ask=par()$ask,
+	                mgp=par()$mgp,
+	                oma=par()$oma,
+	                xaxs=par()$xaxs,
+	                mfrow=par()$mfrow,
+	                cex.axis=par()$cex.axis)
 
 
 	plength=length(x@graph$model)-1
@@ -112,6 +122,7 @@ setMethod(
 
 	axis(2,labelhat,x@graph$model[labelhat],las=1)
 	lines(x=x@ModelHat$point_breaking[x@ModelHat$imax]:(x@ModelHat$point_breaking[x@ModelHat$imax]+x@ModelHat$number_plateau[x@ModelHat$imax]-1),y=rep(Model,x@ModelHat$number_plateau[x@ModelHat$imax]),col="blue")
+	par(refgraph)
 	}
 )
 
@@ -152,7 +163,7 @@ if(any(is.na(data))){
 		else{warning(paste(as.character(length(bad)),"lines have been removed by DDSE"))}
 	}
 mlength=length(data$model)
-if (mlength<=10){
+if (mlength<10){
 	stop("At least 10 observations are needed")
 	}
 
@@ -298,6 +309,16 @@ setMethod(
 	f="validation",
 	signature="DDSE",
 	definition=function(x,data2,newwindow=TRUE,...){
+	  
+	  if(!is.logical(newwindow)){
+	    stop("newwindow must be logical")
+	  }
+	  refgraph=list(ask=par()$ask,
+	                mgp=par()$mgp,
+	                oma=par()$oma,
+	                xaxs=par()$xaxs,
+	                mfrow=par()$mfrow,
+	                cex.axis=par()$cex.axis)
 
 	if (is.character(data2)){data2=read.table(data2)}
 	if (length(data2[1,])!=4){
@@ -356,5 +377,6 @@ setMethod(
 
 	abline(a=Cof[1],b=Cof[2],col="red")
 	abscisse=seq(plength+1,2)
+	par(refgraph)
 	}
 )
