@@ -1,12 +1,12 @@
-6f57be8de1aeea2bcc852738c7c5937a *DESCRIPTION
+8aa3922ba531b0232c24f84b4b388a47 *DESCRIPTION
 16c39a3b3f1ea7abf8dee52abc7463aa *NAMESPACE
 5a82e63540341c6f5185a908ae27257a *R/DDSE.R
 4b9db6c2ead68238fc94918ee504cbbb *R/Djump.R
 36752d8875bcf254703493c4e189814f *R/capushe.R
 352aa769167fc940a00afb007df9135b *R/prog.R
-e96708ee3cf9ff2ac588abef5c120067 *data/datacapushe.rda
-a7b4c4c50920d28e9d5bcd2af8ddbe8c *data/datapartialcapushe.rda
-896df07e201bdb76d190a5da819b0560 *data/datavalidcapushe.rda
+d2094f68fd3c65cb6d5f626e3b80e260 *data/datacapushe.rda
+8f4caac973c90550ac2645275d7a89e9 *data/datapartialcapushe.rda
+8b3ce7cdeeccac99e617919433b2432e *data/datavalidcapushe.rda
 05a3a62c9708b61ef4e34f2582d600a8 *man/BICAICcapushe.Rd
 31f8ebd0961bdddd29c7246874ee8565 *man/DDSE.Rd
 467f26d4b80095510ed6afb23544840a *man/Djump.Rd
